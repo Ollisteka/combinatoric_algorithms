@@ -18,8 +18,9 @@ namespace _1_task
 
 			foreach (var line in args.Skip(1))
 			{
-				var connectsdNodes = line.Split(' ').Where(x => x != "0").Select(x => int.Parse(x));
-				foreach (var node in connectsdNodes)
+				var l = line.Split(' ');
+				var connectedNodes = l.Take(l.Length-1).Select(int.Parse);
+				foreach (var node in connectedNodes)
 					Nodes[pointer].Add(node);
 				pointer++;
 			}
