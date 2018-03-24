@@ -8,12 +8,18 @@ namespace _3_task
         public readonly int Start;
         public readonly int Finish;
         public readonly int NodeCount;
-        private List<int> allNodes;
-        private List<int> allNodesWithoutStart;
 
-        private Dictionary<int,int> DistanceTo = new Dictionary<int, int>();
-        private Dictionary<int,int> Previous = new Dictionary<int, int>();
-        private int[,] Weights;
+        public int Cost { get; private set; }
+
+        private readonly List<int> allNodes;
+        private readonly List<int> allNodesWithoutStart;
+
+        private readonly Dictionary<int,int> distanceTo = new Dictionary<int, int>();
+        private readonly Dictionary<int,int> previous = new Dictionary<int, int>();
+        private int[,] weights;
+
+        private const int Infinity = 9999999;
+
         public NetworkPathFinder(string[] args)
         {
             NodeCount = int.Parse(args[0]);
@@ -21,18 +27,7 @@ namespace _3_task
             Finish = int.Parse(args[NodeCount + 2]);
             allNodes = Enumerable.Range(1, NodeCount).ToList();
             allNodesWithoutStart = allNodes.Where(x => x != Start).ToList();
-            Weights = new int[NodeCount + 1, NodeCount + 1];
-            
-            for (int i = 1; i <= NodeCount; i++)
-            {
-                for (int j = 1; j <= NodeCount; j++)
-                {
-                    if (i == j)
-                        Weights[i, j] = 0;
-                    else
-                        Weights[i, j] = 999999;
-                }
-            }
+            InitWeights();
             for (int node = 1; node <= NodeCount; node++)
             {
                 var line = args[node].Split(' ').Select(int.Parse).ToList();
@@ -41,38 +36,51 @@ namespace _3_task
                 {
                     var previousNode = line[j];
                     var weight = line[j + 1];
-                    Weights[previousNode, node] = weight;
+                    weights[previousNode, node] = weight;
                 }
             }
-            InitDistances(NodeCount + 1);
-
+            InitDistances();
         }
 
-        private void InitDistances(int size)
+        private void InitWeights()
         {
-            DistanceTo.Add(Start, 0);
-            Previous.Add(Start, 0);
+            weights = new int[NodeCount + 1, NodeCount + 1];
+
+            for (int i = 1; i <= NodeCount; i++)
+            {
+                for (int j = 1; j <= NodeCount; j++)
+                {
+                    if (i == j)
+                        weights[i, j] = 0;
+                    else
+                        weights[i, j] = Infinity;
+                }
+            }
+        }
+
+        private void InitDistances()
+        {
+            distanceTo.Add(Start, 0);
+            previous.Add(Start, 0);
             foreach (var node in allNodesWithoutStart)
             {
-                DistanceTo.Add(node, Weights[Start, node]);
-                Previous.Add(node, Start);
+                distanceTo.Add(node, weights[Start, node]);
+                previous.Add(node, Start);
             }
         }
 
         private void CalculateDistances()
         {
-            for (int k = 1; k < NodeCount-2; k++)
+            for (int edge = 1; edge < NodeCount-2; edge++)
             {
                 foreach (var v in allNodesWithoutStart)
                 {
                     foreach (var w in allNodes)
                     {
-                        var oldDistance = DistanceTo[v];
-                        var newDistance = DistanceTo[w] + Weights[w, v];
-                        if (DistanceTo[w] + Weights[w, v] < DistanceTo[v])
+                        if (distanceTo[w] + weights[w, v] < distanceTo[v])
                         {
-                            DistanceTo[v] = DistanceTo[w] + Weights[w, v];
-                            Previous[v] = w;
+                            distanceTo[v] = distanceTo[w] + weights[w, v];
+                            previous[v] = w;
                         }
                     }
                 }
@@ -82,18 +90,20 @@ namespace _3_task
         public Stack<int> GetWay()
         {
             CalculateDistances();
-            if (DistanceTo[Finish] == int.MaxValue)
+            if (distanceTo[Finish] == Infinity)
                 return null;
             var result = new Stack<int>();
             result.Push(Finish);
             var currentNode = Finish;
-            while (Previous[currentNode] != 0)
+            while (previous[currentNode] != 0)
             {
-                currentNode = Previous[currentNode];
+                currentNode = previous[currentNode];
                 result.Push(currentNode);
             }
 
+            Cost = distanceTo[Finish];
             return result;
         }
+        
     }
 }
