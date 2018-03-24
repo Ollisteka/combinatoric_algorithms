@@ -8,6 +8,7 @@ namespace _1_task
 	{
 		private static void Main(string[] args)
 		{
+			args = File.ReadAllLines("in.txt");
 			var reader = new BipartiteGraphReader(args);
 
 			var success = reader.IsGraphBipartite();

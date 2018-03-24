@@ -12,6 +12,7 @@ namespace _2_task
 		
 		static void Main(string[] args)
 		{
+			args = File.ReadAllLines("in.txt");
 			var finder = new PathFinder(args);
 			if (!finder.CanFindWay())
 				File.WriteAllText("out.txt", "N");
