@@ -11,10 +11,10 @@ namespace _2_task
 
 		private readonly List<Point> Directions = new List<Point>
 		{
-			new Point(-1, 0),
-			new Point(1, 0),
+			new Point(0, 1),
 			new Point(0, -1),
-			new Point(0, 1)
+			new Point(-1, 0),
+			new Point(1, 0)
 		};
 
 

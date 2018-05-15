@@ -21,7 +21,7 @@ namespace _3_task
             var way = new StringBuilder();
             while (wayStack.Count != 0)
                 way.Append($"{wayStack.Pop()} ");
-            File.WriteAllLines("out.txt", new []{"Y", way.ToString().Trim()});
+            File.WriteAllLines("out.txt", new []{"Y", way.ToString().Trim(), finder.Cost.ToString()});
         }
        
     }

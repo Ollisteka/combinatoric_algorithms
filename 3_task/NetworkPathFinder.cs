@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace _3_task
@@ -14,14 +15,14 @@ namespace _3_task
         private readonly List<int> allNodes;
         private readonly List<int> allNodesWithoutStart;
 
-        private readonly Dictionary<int,int> distanceTo = new Dictionary<int, int>();
+        private readonly Dictionary<int, double> distanceTo = new Dictionary<int, double>();
         private readonly Dictionary<int,int> previous = new Dictionary<int, int>();
-        private int[,] weights;
+        private double[,] weights;
 
-        private const int Infinity = 9999999;
 
         public NetworkPathFinder(string[] args)
         {
+            Cost = 1;
             NodeCount = int.Parse(args[0]);
             Start = int.Parse(args[NodeCount + 1]);
             Finish = int.Parse(args[NodeCount + 2]);
@@ -30,7 +31,7 @@ namespace _3_task
             InitWeights();
             for (int node = 1; node <= NodeCount; node++)
             {
-                var line = args[node].Split(' ').Select(int.Parse).ToList();
+                var line = args[node].Split(' ').Where(e => e != "").Select(int.Parse).ToList();
                 line = line.Take(line.Count - 1).ToList();
                 for (int j = 0; j < line.Count; j += 2)
                 {
@@ -44,7 +45,7 @@ namespace _3_task
 
         private void InitWeights()
         {
-            weights = new int[NodeCount + 1, NodeCount + 1];
+            weights = new Double[NodeCount + 1, NodeCount + 1];
 
             for (int i = 1; i <= NodeCount; i++)
             {
@@ -53,7 +54,7 @@ namespace _3_task
                     if (i == j)
                         weights[i, j] = 0;
                     else
-                        weights[i, j] = Infinity;
+                        weights[i, j] = double.NegativeInfinity;
                 }
             }
         }
@@ -71,16 +72,29 @@ namespace _3_task
 
         private void CalculateDistances()
         {
-            for (int edge = 1; edge < NodeCount-2; edge++)
+            for (var edge = 1; edge < NodeCount-2; edge++)
             {
-                foreach (var v in allNodesWithoutStart)
+                foreach (var to in allNodesWithoutStart)
                 {
-                    foreach (var w in allNodes)
+                    foreach (var from in allNodes)
                     {
-                        if (distanceTo[w] + weights[w, v] < distanceTo[v])
+                        var dist = distanceTo[from];
+                        var weight = weights[from, to];
+                        var multDist = 0.0;
+                        if (dist == 0 && weight > 0)
+                            multDist = weight;
+                        else if (dist > 0 && weight == 0)
+                            multDist = dist;
+                        else if (dist > 0 && weight > 0)
+                            multDist = dist * weight;
+                        else multDist = double.NegativeInfinity;
+
+                        var newDist = distanceTo[from] + weights[from, to];
+                        var oldDist = distanceTo[to];
+                        if (multDist > distanceTo[to])
                         {
-                            distanceTo[v] = distanceTo[w] + weights[w, v];
-                            previous[v] = w;
+                            distanceTo[to] = multDist;
+                            previous[to] = from;
                         }
                     }
                 }
@@ -90,18 +104,19 @@ namespace _3_task
         public Stack<int> GetWay()
         {
             CalculateDistances();
-            if (distanceTo[Finish] == Infinity)
+            if (double.IsNegativeInfinity(distanceTo[Finish]))
                 return null;
             var result = new Stack<int>();
             result.Push(Finish);
             var currentNode = Finish;
             while (previous[currentNode] != 0)
             {
+            //    Cost *= (int)Math.Abs(weights[previous[currentNode], currentNode]);
                 currentNode = previous[currentNode];
                 result.Push(currentNode);
             }
 
-            Cost = distanceTo[Finish];
+            Cost = (int)distanceTo[Finish];
             return result;
         }
         

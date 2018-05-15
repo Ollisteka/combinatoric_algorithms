@@ -25,7 +25,25 @@ namespace _2_task
 			"2 4"
 		};
 
-		private List<Point> way = new List<Point>
+		private readonly string[] testArgs =
+			{"12",
+				"15",
+				"1 1 1 1 1 1 1 1 1 1 1 1 1 1 1",
+				"1 0 0 0 0 0 0 0 0 1 0 0 0 0 1",
+				"1 0 0 0 0 0 0 0 1 0 0 0 0 0 1",
+				"1 0 0 0 0 0 0 1 0 1 0 1 0 1 1",
+				"1 0 0 0 0 0 1 0 1 0 1 0 1 0 1",
+				"1 0 0 0 0 1 0 0 0 0 0 0 0 0 1",
+				"1 0 0 0 1 0 0 1 0 0 0 0 0 0 1",
+				"1 0 0 1 0 1 0 1 1 1 1 1 1 1 1",
+				"1 0 0 0 0 0 0 0 0 0 0 0 0 0 1",
+				"1 1 0 0 1 1 0 0 0 0 0 0 0 0 1",
+				"1 0 0 0 1 0 0 0 0 0 0 0 0 0 1",
+				"1 1 1 1 1 1 1 1 1 1 1 1 1 1 1",
+				"9 3",
+				"6 13",};
+
+	private List<Point> way = new List<Point>
 		{
 			new Point(2, 2),
 
@@ -38,6 +56,13 @@ namespace _2_task
 			new Point(2, 4)
 		};
 
+		[Test]
+		public void TestInput()
+		{
+			var finder = new PathFinder(testArgs);
+			finder.CanFindWay().Should().BeTrue();
+			var result = finder.way;
+		}
 		[Test]
 		public void DoSomething_WhenSomething()
 		{
