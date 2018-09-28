@@ -4,9 +4,15 @@ using System.Linq;
 
 namespace lab2
 {
+    public enum EdgeType
+    {
+        Reverse = -1,
+        None = 0,
+        Straight = 1,
+    }
     public class MaximumMatchingFinder
     {
-        private readonly int[] choice; //отмечаем, через какую дугу попали в v - прямую или обратную
+        private readonly EdgeType[] choice; //отмечаем, через какую дугу попали в v - прямую или обратную
         private readonly int[,] throughput;
         private readonly double[] labels;
         private readonly int MaxX;
@@ -43,12 +49,11 @@ namespace lab2
             {
                 var x = i + 1;
                 var line = args[x];
-                for (var j = 0; j < MaxY; j++)
-                {
-                    var yCoordinates = line.ReadInts();
-                    for (var y = 0; y < MaxY; y++)
-                        throughput[x, y + 1] = yCoordinates[y];
-                }
+
+                var yCoordinates = line.ReadInts();
+                for (var y = 0; y < MaxY; y++)
+                    throughput[x, GetFlatVerticeForY(y + 1)] = throughput[GetFlatVerticeForY(y + 1), x] = yCoordinates[y];
+                
             }
         }
 
@@ -67,7 +72,11 @@ namespace lab2
             for (var y = MaxY; y >= 1; y--)
                 throughput[MaxX + 1, y] = 1;
         }
-
+        
+        /// <summary>
+        /// Если в конце labels[sink] не бесконечность - то это существует f-дополняющая цепь P (восстанавливаем по previous).
+        /// При этом h(P) = labels[sink] =>  текущий поток можно увеличить на эту величину.
+        /// </summary>
         private void Label()
         {
             for (var i = 0; i < labels.Length; i++)
@@ -78,6 +87,7 @@ namespace lab2
             while (double.IsPositiveInfinity(labels[Sink]) && queue.Count != 0)
             {
                 var w = queue.Dequeue();
+                //идём по прямым рёбрам
                 foreach (var vertex in Vertices)
                 {
                     if (double.IsPositiveInfinity(labels[vertex]) && throughput[w, vertex] > flows[w, vertex])
@@ -85,33 +95,24 @@ namespace lab2
                         labels[vertex] = Math.Min(labels[w], throughput[w, vertex] - flows[w, vertex]);
                         previous[vertex] = w;
                         queue.Enqueue(vertex);
-                        choice[vertex] = 1;
+                        choice[vertex] = EdgeType.Straight;
                     }
                 }
-            }
-        }
-
-        private void DFS(int startNode)
-        {
-            var stack = new Stack<int>();
-            var visited = new HashSet<int>();
-            stack.Push(startNode);
-            while (stack.Count != 0)
-            {
-                var point = stack.Pop();
-                if (visited.Contains(point)) continue;
-                visited.Add(point);
-
-                foreach (var shift in Directions)
+                //идём по обратным
+                foreach (var vertex in Vertices.Skip(1))
                 {
-                    var incindentPoint = point + shift;
-                    if (map[incindentPoint.X, incindentPoint.Y] == State.Wall ||
-                        map[incindentPoint.X, incindentPoint.Y] == State.Visited)
-                        continue;
-                    stack.Push(incindentPoint);
-                    Father[incindentPoint] = point;
+                    if (double.IsPositiveInfinity(labels[vertex]) && flows[vertex, w] > 0)
+                    {
+                        labels[vertex] = Math.Min(labels[w], throughput[vertex, w] - flows[vertex, w]);
+                        previous[vertex] = w;
+                        queue.Enqueue(vertex);
+                        choice[vertex] = EdgeType.Reverse;
+                    }
                 }
+
             }
         }
+
+        
     }
 }
