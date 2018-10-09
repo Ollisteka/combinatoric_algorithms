@@ -62,10 +62,10 @@ namespace lab2
         [Test]
         public void FlattenYCooords()
         {
-            sut.GetFlatVerticeForY(1).Should().Be(5);
-            sut.GetFlatVerticeForY(2).Should().Be(6);
-            sut.GetFlatVerticeForY(3).Should().Be(7);
-            sut.GetFlatVerticeForY(4).Should().Be(8);
+            sut.GetFlatVertexForY(1).Should().Be(5);
+            sut.GetFlatVertexForY(2).Should().Be(6);
+            sut.GetFlatVertexForY(3).Should().Be(7);
+            sut.GetFlatVertexForY(4).Should().Be(8);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace lab2
         [Test]
         public void ThroughputFromSourceToY_Should_BeZero()
         {
-            for (int v = sut.MaxX + 1; v <= sut.GetFlatVerticeForY(sut.MaxY); v++)
+            for (int v = sut.MaxX + 1; v <= sut.GetFlatVertexForY(sut.MaxY); v++)
                 sut.Throughput[sut.Source, v].Should().Be(0);
         }
 
@@ -93,7 +93,7 @@ namespace lab2
         [Test]
         public void ThroughputFromYToSink_Should_BeOne()
         {
-            for (int v = sut.MaxX + 1; v <= sut.GetFlatVerticeForY(sut.MaxY); v++)
+            for (int v = sut.MaxX + 1; v <= sut.GetFlatVertexForY(sut.MaxY); v++)
                 sut.Throughput[v, sut.Sink].Should().Be(1);
         }
 

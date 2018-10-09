@@ -6,18 +6,20 @@ namespace lab2
 {
     public class MaximumMatchingFinder
     {
-        private const int offset = 2;
         private readonly EdgeType[] choice; //отмечаем, через какую дугу попали в v - прямую или обратную
-        private readonly double[] labels;
+        private readonly int[] previous; //вершина, из которой пометили текущую
+        private readonly double[] minimalFlow; //если m[v]!=Infinity, то существует ненасыщенная (s, v)-цепь P, и h(P)=m[v].
+
         public readonly int MaxX;
         public readonly int MaxY;
-        private readonly int[] previous; //вершина, из которой пометили текущую
         public readonly int Sink;
         public readonly int Source = 0;
         public readonly int[,] Throughput;
-        public readonly List<int> Vertices;
         public double[,] Flows;
+        public readonly List<int> Vertices;
         public double MaxFlow;
+
+        public Func<int, int> GetFlatVertexForY => v => v + MaxX;
 
         public MaximumMatchingFinder(string[] args)
         {
@@ -25,20 +27,21 @@ namespace lab2
             MaxX = setsSizes[0];
             MaxY = setsSizes[1];
             Sink = MaxX + MaxY + 1;
-            Throughput = new int[MaxX + MaxY + offset, MaxX + MaxY + offset];
-            Flows = new double[MaxX + MaxY + offset, MaxX + MaxY + offset];
-            previous = new int[MaxX + MaxY + offset];
-            labels = new double[MaxX + MaxY + offset];
-            choice = new EdgeType[MaxX + MaxY + offset];
             Vertices = Enumerable.Range(0, Sink + 1).ToList();
-            InitGraphMatrix(args);
+
+            var dim = Vertices.Count;
+            Throughput = new int[dim, dim];
+            Flows = new double[dim, dim];
+            previous = new int[dim];
+            minimalFlow = new double[dim];
+            choice = new EdgeType[dim];
+            
+            InitGraph(args);
             InitSource();
             InitSink();
         }
 
-        public Func<int, int> GetFlatVerticeForY => v => v + MaxX;
-
-        private void InitGraphMatrix(string[] args)
+        private void InitGraph(string[] args)
         {
             for (var i = 0; i < MaxX; i++)
             {
@@ -47,8 +50,8 @@ namespace lab2
 
                 var yCoordinates = line.ReadInts();
                 for (var y = 0; y < MaxY; y++)
-                    Throughput[x, GetFlatVerticeForY(y + 1)] =
-                        Throughput[GetFlatVerticeForY(y + 1), x] = yCoordinates[y];
+                    Throughput[x, GetFlatVertexForY(y + 1)] =
+                        Throughput[GetFlatVertexForY(y + 1), x] = yCoordinates[y];
             }
         }
 
@@ -67,47 +70,48 @@ namespace lab2
         public void FindMaxFlow()
         {
             foreach (var v in Vertices)
-            foreach (var w in Vertices)
-                Flows[v, w] = 0;
+                foreach (var w in Vertices)
+                    Flows[v, w] = 0;
             do
             {
-                Label();
-                if (double.IsPositiveInfinity(labels[Sink]))
+                FindAugmentingPath();
+                if (double.IsPositiveInfinity(minimalFlow[Sink]))
                     continue;
 
-                MaxFlow += labels[Sink];
+                MaxFlow += minimalFlow[Sink];
                 var v = Sink;
                 while (v != Source)
                 {
                     var w = previous[v];
                     if (choice[v] == EdgeType.Straight)
-                        Flows[w, v] = Flows[w, v] + labels[Sink];
+                        Flows[w, v] = Flows[w, v] + minimalFlow[Sink];
                     else
-                        Flows[v, w] = Flows[v, w] - labels[Sink];
+                        Flows[v, w] = Flows[v, w] - minimalFlow[Sink];
                     v = w;
                 }
-            } while (!double.IsPositiveInfinity(labels[Sink]));
+            } while (!double.IsPositiveInfinity(minimalFlow[Sink]));
         }
 
         /// <summary>
         ///     Если в конце labels[sink] не бесконечность - то это существует f-дополняющая цепь P (восстанавливаем по previous).
         ///     При этом h(P) = labels[sink] =>  текущий поток можно увеличить на эту величину.
         /// </summary>
-        private void Label()
+        private void FindAugmentingPath()
         {
-            for (var i = 0; i < labels.Length; i++)
-                labels[i] = double.PositiveInfinity;
+            for (var i = 0; i < minimalFlow.Length; i++)
+                minimalFlow[i] = double.PositiveInfinity;
+
             var queue = new Queue<int>();
             queue.Enqueue(Source);
             previous[Source] = -1;
-            while (double.IsPositiveInfinity(labels[Sink]) && queue.Count != 0)
+            while (double.IsPositiveInfinity(minimalFlow[Sink]) && queue.Count != 0)
             {
                 var w = queue.Dequeue();
                 //идём по прямым рёбрам
                 foreach (var vertex in Vertices)
-                    if (double.IsPositiveInfinity(labels[vertex]) && Throughput[w, vertex] > Flows[w, vertex])
+                    if (double.IsPositiveInfinity(minimalFlow[vertex]) && Throughput[w, vertex] > Flows[w, vertex])
                     {
-                        labels[vertex] = Math.Min(labels[w], Throughput[w, vertex] - Flows[w, vertex]);
+                        minimalFlow[vertex] = Math.Min(minimalFlow[w], Throughput[w, vertex] - Flows[w, vertex]);
                         previous[vertex] = w;
                         queue.Enqueue(vertex);
                         choice[vertex] = EdgeType.Straight;
@@ -115,9 +119,9 @@ namespace lab2
 
                 //идём по обратным
                 foreach (var vertex in Vertices.Skip(1))
-                    if (double.IsPositiveInfinity(labels[vertex]) && Flows[vertex, w] > 0)
+                    if (double.IsPositiveInfinity(minimalFlow[vertex]) && Flows[vertex, w] > 0)
                     {
-                        labels[vertex] = Math.Min(labels[w], Throughput[vertex, w] - Flows[vertex, w]);
+                        minimalFlow[vertex] = Math.Min(minimalFlow[w], Throughput[vertex, w] - Flows[vertex, w]);
                         previous[vertex] = w;
                         queue.Enqueue(vertex);
                         choice[vertex] = EdgeType.Reverse;
@@ -133,7 +137,7 @@ namespace lab2
                 var found = false;
                 for (var y = 1; y <= MaxY; y++)
                 {
-                    if (Math.Abs(Flows[x, GetFlatVerticeForY(y)]) < 0.0000001)
+                    if (Math.Abs(Flows[x, GetFlatVertexForY(y)]) < 0.0000001)
                         continue;
 
                     result.Add(y.ToString());
