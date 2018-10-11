@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -16,7 +17,17 @@ namespace lab2
             "0 0 0 1",
         };
 
-        private string[] myArgs =
+        private string[] input2 =
+        {
+            "4 4",
+                "1 1 1 1",
+                "1 1 1 0",
+                "1 1 0 0",
+                "1 0 0 0",
+
+        };
+
+    private string[] myArgs =
         {
             "4 4",
             "0 1 0 0",
@@ -26,20 +37,8 @@ namespace lab2
         };
 
 
-        private string[] expectedAnswer =
-        {
-            "1",
-            "2",
-            "3",
-            "4",
-        };
-        private string[] myExpectedAnswer =
-        {
-            "2",
-            "3",
-            "1",
-            "4",
-        };
+        private string expectedAnswer = "1 2 3 4";
+        private string myExpectedAnswer = "2 3 1 4";
 
         private MaximumMatchingFinder sut;
 
@@ -47,6 +46,14 @@ namespace lab2
         public void SetUp()
         {
             sut = new MaximumMatchingFinder(testArgs);
+        }
+
+        [Test]
+        public void TestInput2()
+        {
+            sut = new MaximumMatchingFinder(input2);
+            sut.FindMaxFlow();
+            sut.GetMatching().Should().Be("4 3 2 1");
         }
 
         [Test]

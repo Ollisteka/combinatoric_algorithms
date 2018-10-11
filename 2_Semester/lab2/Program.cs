@@ -9,7 +9,7 @@ namespace lab2
             var args = File.ReadAllLines("in.txt");
             var finder = new MaximumMatchingFinder(args);
             finder.FindMaxFlow();
-            File.WriteAllLines("out.txt", finder.GetMatching());
+            File.WriteAllText("out.txt", finder.GetMatching());
         }
     }
 }

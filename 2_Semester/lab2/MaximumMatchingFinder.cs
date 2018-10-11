@@ -50,8 +50,7 @@ namespace lab2
 
                 var yCoordinates = line.ReadInts();
                 for (var y = 0; y < MaxY; y++)
-                    Throughput[x, GetFlatVertexForY(y + 1)] =
-                        Throughput[GetFlatVertexForY(y + 1), x] = yCoordinates[y];
+                    Throughput[x, GetFlatVertexForY(y + 1)] = yCoordinates[y];
             }
         }
 
@@ -84,9 +83,9 @@ namespace lab2
                 {
                     var w = previous[v];
                     if (choice[v] == EdgeType.Straight)
-                        Flows[w, v] = Flows[w, v] + minimalFlow[Sink];
+                        Flows[w, v] += minimalFlow[Sink];
                     else
-                        Flows[v, w] = Flows[v, w] - minimalFlow[Sink];
+                        Flows[v, w] -= minimalFlow[Sink];
                     v = w;
                 }
             } while (!double.IsPositiveInfinity(minimalFlow[Sink]));
@@ -121,7 +120,7 @@ namespace lab2
                 foreach (var vertex in Vertices.Skip(1))
                     if (double.IsPositiveInfinity(minimalFlow[vertex]) && Flows[vertex, w] > 0)
                     {
-                        minimalFlow[vertex] = Math.Min(minimalFlow[w], Throughput[vertex, w] - Flows[vertex, w]);
+                        minimalFlow[vertex] = Math.Min(minimalFlow[w], Flows[vertex, w]);
                         previous[vertex] = w;
                         queue.Enqueue(vertex);
                         choice[vertex] = EdgeType.Reverse;
@@ -129,7 +128,7 @@ namespace lab2
             }
         }
 
-        public string[] GetMatching()
+        public string GetMatching()
         {
             var result = new List<string>();
             for (var x = 1; x <= MaxX; x++)
@@ -149,7 +148,7 @@ namespace lab2
                     result.Add("0");
             }
 
-            return result.ToArray();
+            return string.Join(" ", result);
         }
     }
 }
