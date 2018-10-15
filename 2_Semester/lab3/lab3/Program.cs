@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace lab3
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
+            var args = File.ReadAllLines("in.txt");
+            var helper = new RalphHelper(args);
+            File.WriteAllText("out.txt", helper.HelpRalph().ToString());
         }
     }
 }
