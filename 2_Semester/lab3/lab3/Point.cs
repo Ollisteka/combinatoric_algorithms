@@ -32,18 +32,6 @@ namespace lab3
             return Math.Sqrt(Math.Pow(X - p.X, 2) + Math.Pow(Y - p.Y, 2));
         }
 
-        public int Flatten()
-        {
-            return (X << 16) | (Y);
-        }
-
-        public static Point Deflatten(int intPt)
-        {
-            var x = (intPt & 0xFF00) >> 16;
-            var y = intPt & 0x00FF;
-            return new Point(x,y);
-        }
-
         public override string ToString()
         {
             return $"{X} {Y}";

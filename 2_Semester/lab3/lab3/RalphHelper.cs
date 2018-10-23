@@ -17,10 +17,10 @@ namespace lab3
         {
             MeetingPoints = args[1].ReadPoints();
             InterestingPlaces = args[2].ReadPoints();
-            for (int i = 0; i < MeetingPoints.Count; i++)
+            for (var i = 0; i < MeetingPoints.Count; i++)
                 MeetMap[MeetingPoints[i]] = i;
 
-            for (int i = 0; i < InterestingPlaces.Count; i++)
+            for (var i = 0; i < InterestingPlaces.Count; i++)
                 InterestingPlacesMap[InterestingPlaces[i]] = i;
 
 
@@ -30,26 +30,20 @@ namespace lab3
 
         public void FillReachablePlaces()
         {
-            for (int i = 0; i < MeetingPoints.Count - 1; i++)
-            {
-                var reachablePlaces = GetReachablePlaces(MeetingPoints[i], MeetingPoints[i + 1]);
-                foreach (var reachablePlace in reachablePlaces)
+            for (var i = 0; i < MeetingPoints.Count - 1; i++)
+                foreach (var reachablePlace in GetReachablePlaces(MeetingPoints[i], MeetingPoints[i + 1]))
                     AdjacentGraph[i, InterestingPlacesMap[reachablePlace]] = 1;
-            }
         }
 
-        private List<Point> GetReachablePlaces(Point from, Point to)
+        private IEnumerable<Point> GetReachablePlaces(Point from, Point to)
         {
-            var result = new List<Point>();
             var bobDistance = from.DistanceTo(to);
             foreach (var interestingPlace in InterestingPlaces)
             {
                 var ralphDistance = from.DistanceTo(interestingPlace) + interestingPlace.DistanceTo(to);
                 if (ralphDistance <= 2 * bobDistance)
-                    result.Add(interestingPlace);
+                    yield return  interestingPlace;
             }
-
-            return result;
         }
 
         public int HelpRalph()
@@ -64,12 +58,12 @@ namespace lab3
         {
             var maxX = AdjacentGraph.GetLength(0);
             var maxY = AdjacentGraph.GetLength(1);
-            var result = new List<string>() {$"{maxX} {maxY}"};
-            for (int i = 0; i < maxX; i++)
+            var result = new List<string> {$"{maxX} {maxY}"};
+            for (var x = 0; x < maxX; x++)
             {
                 var line = new StringBuilder();
-                for (int j = 0; j < maxY; j++)
-                    line.Append($"{AdjacentGraph[i, j].ToString()} ");
+                for (var y = 0; y < maxY; y++)
+                    line.Append($"{AdjacentGraph[x, y]} ");
                 result.Add(line.ToString().Trim());
             }
 

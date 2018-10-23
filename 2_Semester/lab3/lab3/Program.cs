@@ -2,9 +2,9 @@
 
 namespace lab3
 {
-    class Program
+    public class Program
     {
-        static void Main()
+        public static void Main()
         {
             var args = File.ReadAllLines("in.txt");
             var helper = new RalphHelper(args);
